@@ -1,0 +1,15 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background-color: white;
+  color: black;
+}
+InputText {
+  color: #333; /* Set your desired text color */
+  background-color: #fff; /* Set your desired background color */
+  border: 1px solid #ccc; /* Optionally, set border styles */
+  padding: 8px; /* Adjust padding as needed */
+}
