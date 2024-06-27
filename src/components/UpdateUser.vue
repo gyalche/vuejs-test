@@ -1,38 +1,30 @@
 <template>
   <Toast />
   <div class="form">
-    <h2>CREATE USERS</h2>
+    <h2>UPDATE USER</h2>
     <form @submit.prevent="submitForm" class="my_form">
-      <FloatLabel class="input-form">
-        <div class="label-input">
-          <label for="name">Name</label>
-          <InputText class="input" id="name" v-model="form.name" />
-        </div>
-        <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
-      </FloatLabel>
-      <FloatLabel class="input-form">
-        <div class="label-input">
-          <label for="email">Email</label>
-          <InputText class="input" id="email" v-model="form.email" />
-        </div>
-        <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
-      </FloatLabel>
-      <FloatLabel class="input-form">
-        <div class="label-input">
-          <label for="phone">Phone</label>
-          <InputText type="tel" class="input" id="phone" v-model="form.phone" />
-        </div>
-        <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
-      </FloatLabel>
-      <FloatLabel class="input-form">
-        <div class="label-input">
-          <label for="website">Website</label>
-          <InputText class="input" id="website" v-model="form.website" />
-        </div>
-        <div v-if="errors.website" class="error-message">
-          {{ errors.website }}
-        </div>
-      </FloatLabel>
+      <div v-for="field in fields" :key="field.id">
+        <FloatLabel class="input-form">
+          <div class="label-input">
+            <label :for="field.id">{{ field.label }}</label>
+            <InputText
+              v-if="field.type !== 'tel'"
+              :type="field.type"
+              class="input"
+              :id="field.id"
+              v-model="form[field.model]"
+            />
+            <InputText
+              v-else
+              type="tel"
+              class="input"
+              :id="field.id"
+              v-model="form[field.model]"
+            />
+          </div>
+          <div v-if="errors[field.model]" class="error-message">{{ errors[field.model] }}</div>
+        </FloatLabel>
+      </div>
       <div class="btn">
         <button type="submit" class="submit">Update</button>
       </div>
@@ -53,32 +45,31 @@ export default {
     const route = useRoute();
     const userId = parseInt(route.params.id);
 
-    console.log('this is user id', userId);
-
     const form = ref({
       name: '',
       email: '',
       phone: '',
-      website: '',
+      website: ''
     });
+
     const errors = ref({});
+
+    const fields = [
+      { id: 'name', label: 'Name', model: 'name', type: 'text' },
+      { id: 'email', label: 'Email', model: 'email', type: 'text' },
+      { id: 'phone', label: 'Phone', model: 'phone', type: 'tel' },
+      { id: 'website', label: 'Website', model: 'website', type: 'text' }
+    ];
 
     const validateForm = () => {
       errors.value = {};
-      if (!form.value.name) {
-        errors.value.name = 'Name is required';
-      }
-      if (!form.value.email) {
-        errors.value.email = 'Email is required';
-      } else if (!isValidEmail(form.value.email)) {
-        errors.value.email = 'Invalid email format';
-      }
-      if (!form.value.phone) {
-        errors.value.phone = 'Phone is required';
-      }
-      if (!form.value.website) {
-        errors.value.website = 'Website is required';
-      }
+      fields.forEach(field => {
+        if (!form.value[field.model]) {
+          errors.value[field.model] = `${field.label} is required`;
+        } else if (field.model === 'email' && !isValidEmail(form.value.email)) {
+          errors.value.email = 'Invalid email format';
+        }
+      });
       return Object.keys(errors.value).length === 0;
     };
 
@@ -89,17 +80,16 @@ export default {
 
     const submitForm = () => {
       if (validateForm()) {
-        const newUser = {
+        const updatedUser = {
           id: userId,
           name: form.value.name,
           email: form.value.email,
           phone: form.value.phone,
-          website: form.value.website,
+          website: form.value.website
         };
 
-        UserService.updateUser(newUser)
+        UserService.updateUser(updatedUser)
           .then(() => {
-           
             toast.add({
               severity: 'success',
               summary: 'Success',
@@ -108,10 +98,9 @@ export default {
             });
 
             setTimeout(() => {
-            router.replace({ path: '/users' });
-            resetForm();
+              router.replace({ path: '/users' });
+              resetForm();
             }, 1000);
-        
           })
           .catch(error => {
             toast.add({
@@ -131,7 +120,7 @@ export default {
         name: '',
         email: '',
         phone: '',
-        website: '',
+        website: ''
       };
       errors.value = {};
     };
@@ -147,6 +136,7 @@ export default {
     return {
       form,
       errors,
+      fields,
       submitForm,
       validateForm,
       isValidEmail,
